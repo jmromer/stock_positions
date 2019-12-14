@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+
+from typing import List
+
+import click
+from pandas import DataFrame as DF
+
+import stocks
+import utils
+
+START_CSV_PATH: str = f"./data/start.csv"
+TRADES_CSV_PATH: str = f"./data/trades.csv"
+SECTORS_HTML_PATH: str = f"./data/table.html"
+
+EOD_RESULT_CSV_PATH: str = "./results/end.csv"
+SECTORS_RESULT_CSV_PATH: str = "./results/sector.csv"
+
+
+@click.group()
+def cli():
+    pass
+
+
+@click.command()
+@click.option("--start",
+              default=START_CSV_PATH,
+              help="Start positions CSV path (local or URI)")
+@click.option(
+    "--trades",
+    default=TRADES_CSV_PATH,
+    help="Trades CSV path(s) (local or URI), comma-separated if multiple.")
+@click.option("--out",
+              default=EOD_RESULT_CSV_PATH,
+              help="Store result as CSV at this path.")
+def end_of_day(start, trades, out):
+    """
+    Calculate today's end-of-day positions.
+
+    Print to stdout and save CSV summary to the default output path.
+    """
+    trades = trades.split(",")
+    csv_paths: List[str] = [start, *trades]
+
+    utils.calculating("end-of-day positions", csv_paths, click.echo)
+    positions_df: DF = stocks.end_of_day_positions(csv_paths)
+
+    click.echo("\nResults:")
+    click.echo_via_pager(positions_df.to_string())
+
+    utils.save_df_to_csv(positions_df, out, click.echo)
+
+    return positions_df
+
+
+@click.command()
+@click.option(
+    "--sectors",
+    default=SECTORS_HTML_PATH,
+    help="Path to HTML file containing sectors data table (local or URI)")
+@click.option("--start",
+              default=START_CSV_PATH,
+              help="Start positions CSV path (local or URI)")
+@click.option(
+    "--trades",
+    default=TRADES_CSV_PATH,
+    help="Trades CSV path(s) (local or URI), comma-separated if multiple.")
+@click.option("--out",
+              default=SECTORS_RESULT_CSV_PATH,
+              help="Store result as CSV at this path.")
+def eod_by_sector(sectors, start, trades, out):
+    """
+    Aggregate the day's positions by industry sector.
+
+    Print to stdout and save CSV summary to the default output path.
+    """
+    trades = trades.split(",")
+    csv_paths: List[str] = [start, *trades]
+
+    utils.calculating("end-of-day positions", csv_paths, click.echo)
+    positions_df: DF = stocks.end_of_day_positions(csv_paths)
+
+    utils.calculating("positions by sector", sectors, click.echo)
+    positions_by_sector_df: DF = stocks.positions_by_sector(
+        positions_df, sectors)
+
+    click.echo("\nResults:")
+    click.echo_via_pager(positions_by_sector_df.to_string())
+
+    utils.save_df_to_csv(positions_by_sector_df, out, click.echo)
+
+
+cli.add_command(end_of_day)
+cli.add_command(eod_by_sector)
+
+if __name__ == "__main__":
+    cli()

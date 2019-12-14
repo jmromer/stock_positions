@@ -1,48 +1,184 @@
- <div class="center">
-<p align="center"><img src="https://user-images.githubusercontent.com/523933/49741959-91a1da00-fc65-11e8-911f-521331f87174.png" align="center" width="20%" height="20%"></p>
-  <h3 align="center">Clear Street</h3>
-  <p align="center">
-  Data Science Screening
-</p>
-</div>
+Stocks
+======
 
----
+A command-line tool to compute end-of-day positions for a given set of stocks,
+read from CSVs.
 
-Please read these instructions carefully as this repository contains parts of your interview. You will be given your own private version of this repository to complete your work. Only you and Clear Street members can view your repository.
+Data
+-----
 
-You should create a branch from `master` to do your work. Once you are satisfied, create a pull-request with your notes and merge your work into `master`. The pull-request will let us know you are finished.
+### Input Data
 
-## Q&A
+- `start.csv`: stock positions (number of shares held) for the start of a given day
+- `trades.csv`: transactions (position changes) throughout the same day may not
+  be coextensive with the set of stocks in `start.csv`.
+- `table.html`: HTML table relating ticker symbols to industrial sector
 
-The following sections contain questions that you should answer within this `README.md` file. Below each question, insert your response using Markdown.
+### Results Data
 
-### Tooling
+- `end.csv`: start of day portfolio for the following day. Each entry sums the
+  start of day value and all subsequent trades for each stock in `start.csv`.
+- `sector.csv`: for each sector, the number of shares held on the given day.
 
-Provide your preferences for each of the categories below, and give a brief description as to why and any cool extensions/features you use. There's no right or wrong here.
+Usage
+-----
 
-1. Operating system?
+Issue `./stock_positions` to see subcommand help.
 
-2. Text editor?
+```sh
+./stock_positions --help
 
-3. Terminal type?
+# Usage: stock_positions [OPTIONS] COMMAND [ARGS]...
+#
+# Options:
+#   --help  Show this message and exit.
+#
+# Commands:
+#   end-of-day     Calculate today's end-of-day positions.
+#   eod-by-sector  Aggregate the day's positions by industry sector.
+```
 
-4. Scripting language?
+### end-of-day
 
+```sh
+./stock_positions end-of-day --help
 
-## Real World Problem
+# Usage: stock_positions end-of-day [OPTIONS]
+#
+#   Calculate today's end-of-day positions.
+#
+#   Print to stdout and save CSV summary to the default output path.
+#
+# Options:
+#   --start TEXT   Start positions CSV path (local or URI)
+#   --trades TEXT  Trades CSV path(s) (local or URI), comma-separated if
+#                  multiple.
+#   --out TEXT     Store result as CSV at this path.
+#   --help         Show this message and exit.
+```
 
-Please use Python and Pandas for this project. Feel free to use any other libraries you may need. We have provided relevant files in the `data/` directory. The `start.csv` file contains stock positions (number of shares held) for the start of the day. The `trades.csv` file contains transactions (position changes) that have occurred throughout the day.
+```sh
+Calculating end-of-day positions...
+Using data from:
+- https://raw.githubusercontent.com/clear-street/datasci-screening-jmromer/master/data/start.csv?token=ABB2QF5OCWUUWOP66BTDC4K57GGXS
+- https://raw.githubusercontent.com/clear-street/datasci-screening-jmromer/master/data/trades.csv?token=ABB2QFZQ54WZL2LITM6362K57GI64
 
-Parts 1, 2, and 3 are designed to take roughly an hour. Part 4 is free-form, and you're free to take however long you need. Please submit the entirety of your Python work along with your output files for all parts.
+Results:
+        shares_held
+symbol
+A           1864817
+AAP        -3298989
+ABBV       -1556626
+ABC         2436387
+ABT          878535
+ACN         4028944
+ADM         -794997
+ADS         -530077
+AEE        -1520723
+AEP         3351904
+AES         -609290
+AFL         4493323
+AGN        -1384731
+AIG         -994018
+AIV        -5605954
+AIZ          -18026
+...
 
-If you use libraries other than Pandas, please provide a `requirements.txt` as well as instructions on how to run your script. Assume we are going to clone your repo with no dependencies.
+Results CSV saved to ./results/end.csv
+```
 
-1. Read `start.csv`, `trades.csv`, and `table.html` into Pandas directly from Github.
+### eod-by-sector
 
-2. Create an end of day file, `eod.csv`, that sums the start of day portfolio with the trades that have occurred during the day. This represents the start of day portfolio for the next day.
+```sh
+./stock_positions eod-by-sector --help
 
-3. We have provided a scraped `.html` file that gives you the ticker, sector, and headquarters location of several companies. Produce a `sector.csv` file that shows the number of shares owned at the end of the day in each sector.
+# Usage: stock_positions eod-by-sector [OPTIONS]
+#
+#   Aggregate the day's positions by industry sector.
+#
+#   Print to stdout and save CSV summary to the default output path.
+#
+# Options:
+#   --sectors TEXT  Path to HTML file containing sectors data table (local or
+#                   URI)
+#   --start TEXT    Start positions CSV path (local or URI)
+#   --trades TEXT   Trades CSV path(s) (local or URI), comma-separated if
+#                   multiple.
+#   --out TEXT      Store result as CSV at this path.
+#   --help          Show this message and exit.
+```
 
-4. That wasn't so bad, right? What are some other interesting things you can do with this data? Maybe plot the headquarters locations using a geolocation API, or tell us how much money those trades would have made with today's market data? Entirely up to you.
+```sh
+Calculating end-of-day positions...
+Using data from:
+- https://raw.githubusercontent.com/clear-street/datasci-screening-jmromer/master/data/start.csv?token=ABB2QF5OCWUUWOP66BTDC4K57GGXS
+- https://raw.githubusercontent.com/clear-street/datasci-screening-jmromer/master/data/trades.csv?token=ABB2QFZQ54WZL2LITM6362K57GI64
 
-Don't hesitate to ask if you have any questions, and good luck :)
+Calculating positions by sector...
+Using data from:
+- https://raw.githubusercontent.com/clear-street/datasci-screening-jmromer/master/data/table.html?token=ABB2QF5PEP4CNS2QCF5GDJK57GLI6
+
+Results:
+                        shares_held
+sector
+Communication Services     17543418
+Consumer Discretionary    -29123263
+Consumer Staples           31028909
+Energy                     20474677
+Financials                 47425709
+Health Care                36026170
+Industrials                 8244436
+Information Technology     17527762
+Materials                 -29528000
+Real Estate               -20684352
+Utilities                  23679353
+
+Results CSV saved to ./results/sector.csv
+```
+
+Dependencies
+------------
+
+- python: anaconda3-2019.07 (set by `.tool-versions`)
+- pandas
+- click
+- pytest
+
+To install all dependencies, issue
+
+```sh
+conda create --name <env_name> --file requirements.txt
+```
+
+if using Anaconda.
+
+Alternatively, assuming you've created and activated a virtualenv,
+
+```sh
+pip install -r requirements.txt
+```
+
+Testing
+-------
+
+Issue `pytest` from the project root to run tests.
+
+```sh
+% pytest
+======================================= test session starts ========================================
+platform darwin -- Python 3.7.5, pytest-5.3.1, py-1.8.0, pluggy-0.13.1
+rootdir: /Users/jmromer/Desktop/datasci-screening-jmromer
+collected 3 items
+
+stocks_test.py ...                                                                           [100%]
+
+======================================== 3 passed in 0.40s =========================================
+```
+
+Colophon
+--------
+
+- Operating system: macOS 10.15.1
+- Text editor: Emacs 26.3
+- Terminal type: iTerm2 3.3.20191207-nightly
+- Scripting language: Python 3.7
